@@ -1,0 +1,26 @@
+<!doctype html>
+<html><head>
+    <script type="text/javascript" src="Microphone/swfobject.js"></script>
+    <script type="text/javascript" src="ulaw.js"></script>
+    <script type="text/javascript" src="Microphone/microphone.js"></script>
+    <script type="text/javascript" src="sockjs-0.1.min.js"></script>
+    <script type="text/javascript">
+        Microphone.debug = true;
+        bsock = new SockJS("/broadcast");
+        Microphone.initialize({ swfLocation: "Microphone/MicrophoneMain.swf" });
+        Microphone.onready(function(){
+            Microphone.enable();
+            Microphone.ondata(function(frame){
+                var encoded = [];
+                for (var i = 0; i < frame.length; i++) {
+                    if (i % 4 !== 0) continue;
+                    var sample = 1.18 * (frame.charCodeAt(i) - 27647);
+                    encoded.push(String.fromCharCode(MuLaw.encode(sample)));
+                }
+                var toSend = encoded.join("");
+                bsock.send(toSend);
+                //console.log("Sent: " + toSend.length);
+            });
+        });
+    </script>
+</head><body></body></html>
